@@ -1,0 +1,50 @@
+Documentation for SparksBank
+----------------------------
+1.0 (Beta) 4 SEP 2016:
+	- First Created
+	- Added the following features on the package:
+		* BankInfo Class and corresponding ArrayList
+		* Account ID
+		* Name
+		* Password
+		* Balance
+		* Accessor and mutator methods for each instance variables (and for static variables)
+		* Method that lists all names
+		* Method that lists the amount of registered users
+		* Method that applies interest
+		* Empty constructor that is used to access static variables.
+		* Constructor with four parameters that defines a registered user
+	- Added the following features on the Driver class:
+		* Creation of a new account
+		* Ability to log in to an existing account
+		* Checking the number of registered users
+		* Terminating the program (volatile memory)
+		* Listing the names of registered users
+		** More could be checked by looking at the original coding of SparkBanks.java
+	This bank program is created with the intent of making a large library of users that can individually gain access to their account.
+	Because each account is unique, only the registered user knows the information that is required for gaining access to the server and his or her account.
+	When creating an account, a user can:
+		input a name in any form.
+		input a password in any form.
+		input as much credits as he or she wants.
+		obtain a randomly generated 7-digit accountID used for login.
+	Once a new user is created, the static variable accounterNo is accumulated by a value, and a new SparksBank user is added to the ArrayList list.
+	The user can log in using the ID obtained. By logging in, one can:
+		check his or her balance.
+		withdraw money from his or her account.
+		deposit money from his or her account.
+		change personal information (name and password) after confirming original password.
+		log out of the server.
+	More features are to be added on later versions. 
+	Modifications to do:
+	  	- Use a sort method to sort both lists in lexicographical order.
+	 	- Use a delimiter to set requirements for a password. The requirements are:
+	 		1. It should be at least 8 characters long.
+	 		2. It must contain at least 3 capital letters.
+	 		3. All small case letters, capital letters, numbers, and special keys can be used; spaces cannot be used.
+	 		4. It must contain at least one numerical value.
+	 	- Create a 'confirm password' method and compare two inputs in order to match the two Strings.
+	 	- If possible, whenever one inputs a password, make sure the immediate output displays asterisks only
+	 	- If possible, try to make the information persistent, not volatile.
+	 	- Add a concept of time in the program and implement the method where interest accumulates over the balance.
+	   	- Make each account ID a unique number (Although the possibility of getting two identical account ID is 1 of 9999999).
