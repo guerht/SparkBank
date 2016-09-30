@@ -2,6 +2,9 @@ import java.util.ArrayList;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+// import java.util.Scanner;
+// import java.text.NumberFormat;
+import javax.swing.ImageIcon;
 
 public class Client {
 	// required for frame, page 1 and miscellaneous
@@ -19,9 +22,9 @@ public class Client {
 	private JButton button_3;
 	private JButton button_4;
 	private JButton button_5;
-	private JLabel blank, blank2, blank3, blank4, blank5;
-	private ActiveEvent handler = new ActiveEvent();
-	private Boolean confirmBoolean = true;
+	private JLabel blank, blank2, blank3, blank4, blank5; // blank fillers used to fill a blank grid
+	private ActiveEvent handler = new ActiveEvent(); // used for main buttons
+	private Boolean confirmBoolean = true; // checks when registering whether the entered PIN number is actually only consisted of numbers.
 	//required for createAnAccountPage() panel;
 	private JLabel description;
 	private JLabel newFirstName;
@@ -52,10 +55,10 @@ public class Client {
 	private JButton button_10;
 	private JButton button_11;
 	private JButton button_12;
-	private int iac;
+	private int iac; // used for looping though the arraylist of the current server
 	private Object[] message = {"Account ID: ", loginAccountID, "PIN Number: ", loginPIN, rememberMe};
 	// for withdrawal and deposits
-	private JLabel balChangeDirects = new JLabel("Enter the amount you would like to withdraw: ");
+	private JLabel balChangeDirects = new JLabel();
 	private JTextField listAmount = new JTextField();
 	private JButton num1 = new JButton("1");
 	private JButton num2 = new JButton("2");
@@ -74,6 +77,24 @@ public class Client {
 	private JButton clearinfo = new JButton("C");
 	private JButton[] fourthRow = {decimal, num0, clearinfo};
 	private Object[] numPad = {balChangeDirects, listAmount, firstRow, secondRow, thirdRow, fourthRow};
+	private boolean onlyOnce = false;
+	private NumberEvent numberEvent = new NumberEvent();
+	private double withDep$;
+	private boolean isDecimalUsed = false;
+	private ImageIcon tick = createImageIcon("tick.png");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.0 (Pre-Alpha)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.0.1 Build 0001</span></html>");
+	private Object[] aboutMsg = {aboutMsgLabel};
+	// used to generate the tick icon (study this in-depth later)
+	protected static ImageIcon createImageIcon(String path) {
+        java.net.URL imgURL = Client.class.getResource(path);
+        if (imgURL != null) {
+            return new ImageIcon(imgURL);
+        } else {
+            System.err.println("Couldn't find file: " + path);
+            return null;
+        }
+    }
+    // actionlistener for jframe options
 	private class FrameEvent implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
 			if(event.getSource() == refresh) {
@@ -83,13 +104,64 @@ public class Client {
 			else if(event.getSource() == exit) {
 				System.exit(0);
 			}
+			else if(event.getSource() == about) {
+				JOptionPane.showOptionDialog(null, aboutMsg, "About...", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);	
+			}
 		}
 	}
+	// actionlistener for numpad
+	private class NumberEvent implements ActionListener {
+		public void actionPerformed(ActionEvent event) {
+			if(event.getSource() == num1) {
+				listAmount.setText(listAmount.getText()+"1");
+			}
+			else if(event.getSource() == num2) {
+				listAmount.setText(listAmount.getText()+"2");
+			}
+			else if(event.getSource() == num3) {
+				listAmount.setText(listAmount.getText()+"3");
+			}
+			else if(event.getSource() == num4) {
+				listAmount.setText(listAmount.getText()+"4");
+			}
+			else if(event.getSource() == num5) {
+				listAmount.setText(listAmount.getText()+"5");
+			}
+			else if(event.getSource() == num6) {
+				listAmount.setText(listAmount.getText()+"6");
+			}
+			else if(event.getSource() == num7) {
+				listAmount.setText(listAmount.getText()+"7");
+			}
+			else if(event.getSource() == num8) {
+				listAmount.setText(listAmount.getText()+"8");
+			}
+			else if(event.getSource() == num9) {
+				listAmount.setText(listAmount.getText()+"9");
+			}
+			else if(event.getSource() == num0) {
+				listAmount.setText(listAmount.getText()+"0");
+			}
+			else if(event.getSource() == clearinfo) {
+				listAmount.setText(null);
+				decimal.setEnabled(true);
+				isDecimalUsed = false;
+			}
+			else if(event.getSource() == decimal) {
+				if(isDecimalUsed == false) {
+					listAmount.setText(listAmount.getText()+".");
+					decimal.setEnabled(false);
+					isDecimalUsed = true;
+				}
+			}
+		}
+	}
+	// actionlistener for main buttons in menu
 	private class ActiveEvent implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
 			if(event.getSource() == button_1) {
 				if(currentServer.size() >= 10) {
-					JOptionPane.showMessageDialog(frame, "The server has reached its user capacity. Please change to another server to register.");
+					JOptionPane.showMessageDialog(frame, "The server has reached its maximum user capacity. Please change to another server to register.");
 				}
 				else {
 					JOptionPane.showMessageDialog(frame, "<html>Please note that when you create your account, your Account ID is automatically generated. <br>Your unique account ID cannot be modified once created. <br>Your newly generated account ID will always be required for all future logins, so please take a note of it.</html>");
@@ -137,25 +209,30 @@ public class Client {
 				}
 			}
 			else if(event.getSource() == button_3) {
-				String s = (String) JOptionPane.showInputDialog(frame, "Note that different servers contain different account information.\n" + "An account made in one server cannot be used to be accessed in another.", "Change Server", JOptionPane.INFORMATION_MESSAGE, null, possibilities, "Asia");
-				if(s.equals("Asia")) {
-					serverNumber = 1;
-					currentServer = asia;
-					clearpage();
-					page1();
+				try {
+					String s = (String) JOptionPane.showInputDialog(frame, "Note that different servers contain different account information.\n" + "An account made in one server cannot be used to be accessed in another.", "Change Server", JOptionPane.INFORMATION_MESSAGE, null, possibilities, "Asia");
+					if(s.equals("Asia")) {
+						serverNumber = 1;
+						currentServer = asia;
+						clearpage();
+						page1();
+					}
+					else if(s.equals("America")) {
+						serverNumber = 2;
+						currentServer = america;
+						clearpage();
+						page1();
+					}
+					else if(s.equals("Europe")) {
+						serverNumber = 3;
+					 	currentServer = europe;
+					 	clearpage();
+					 	page1();
+					}
 				}
-				else if(s.equals("America")) {
-					serverNumber = 2;
-					currentServer = america;
-					clearpage();
-					page1();
+				catch (Exception e) {
+					// System.out.println("There are actually no errors.");
 				}
-				else if(s.equals("Europe")) {
-					serverNumber = 3;
-				 	currentServer = europe;
-				 	clearpage();
-				 	page1();
-				 }
 			}
 			else if(event.getSource() == button_5) {
 				System.out.println(currentServer.size());
@@ -164,28 +241,33 @@ public class Client {
 				System.exit(0);
 			}
 			else if(event.getSource() == button_6) {
-				for(int i = 0; i < newPINpf.getText().length(); i++) {
-					if(newPINpf.getText().charAt(i) < '0' || newPINpf.getText().charAt(i) > '9') {
-						JOptionPane.showMessageDialog(frame, "The PIN Numbers must contain only numbers.");
-						confirmBoolean = false;
-						break;
-					}
+				if(newFirstNametf.getText().equals("") || newLastNametf.getText().equals("")) {
+					JOptionPane.showMessageDialog(null, "Please enter a valid name.");
 				}
-				if(confirmBoolean == true) {
-					if(newPINpf.getText().length() != 6) {
-						JOptionPane.showMessageDialog(frame, "The PIN Number you entered is not 6 digits.");
+				else {
+					for(int i = 0; i < newPINpf.getText().length(); i++) {
+						if(newPINpf.getText().charAt(i) < '0' || newPINpf.getText().charAt(i) > '9') {
+							JOptionPane.showMessageDialog(frame, "The PIN Numbers must contain only numbers.");
+							confirmBoolean = false;
+							break;
+						}
 					}
-					else if(Integer.parseInt(newPINpf.getText()) != Integer.parseInt(confirmPinpf.getText())) {
-						JOptionPane.showMessageDialog(frame, "Your PIN does not match your confirmation PIN.");
-					}
-					else {
-						int option = JOptionPane.showConfirmDialog(frame, "<html>Is the following information correct?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name: " + newFirstNametf.getText() + " " + newLastNametf.getText() + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e-mail Address: " + newEmailtf.getText() + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PIN Number: " + "******</html>", "Confirmation", JOptionPane.YES_NO_OPTION);
-						if (option == 0) {
-							int random = (int) (Math.random()*10000000);
-							currentServer.add(new User(newFirstNametf.getText() + " " + newLastNametf.getText(), random, Integer.parseInt(newPINpf.getText())));
-							JOptionPane.showMessageDialog(frame, "<html>Your new account has been generated!<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name: " + newFirstNametf.getText() + " " + newLastNametf.getText() + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Account ID: " + random + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PIN Number: " + "******</html>");
-							clearpage();
-							page1();
+					if(confirmBoolean == true) {
+						if(newPINpf.getText().length() != 6) {
+							JOptionPane.showMessageDialog(frame, "The PIN Number you entered is not 6 digits.");
+						}
+						else if(Integer.parseInt(newPINpf.getText()) != Integer.parseInt(confirmPinpf.getText())) {
+							JOptionPane.showMessageDialog(frame, "Your PIN does not match your confirmation PIN.");
+						}
+						else {
+							int option = JOptionPane.showConfirmDialog(frame, "<html>Is the following information correct?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name: " + newFirstNametf.getText() + " " + newLastNametf.getText() + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e-mail Address: " + newEmailtf.getText() + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PIN Number: " + "******</html>", "Confirmation", JOptionPane.YES_NO_OPTION);
+							if (option == 0) {
+								int random = (int) (Math.random()*10000000);
+								currentServer.add(new User(newFirstNametf.getText() + " " + newLastNametf.getText(), random, Integer.parseInt(newPINpf.getText())));
+								JOptionPane.showMessageDialog(frame, "<html>Your new account has been generated!<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name: " + newFirstNametf.getText() + " " + newLastNametf.getText() + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Account ID: " + random + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PIN Number: " + "******</html>");
+								clearpage();
+								page1();
+							}
 						}
 					}
 				}
@@ -200,10 +282,85 @@ public class Client {
 				JOptionPane.showMessageDialog(frame, "You have currently " + currentServer.get(iac).getBalance() + " credit(s) in your account.");
 			}
 			else if(event.getSource() == button_9) {
+				balChangeDirects.setText("Enter the amount you would like to withdraw: ");
+				if(onlyOnce == false) {
+					num1.addActionListener(numberEvent);
+					num2.addActionListener(numberEvent);
+					num3.addActionListener(numberEvent);
+					num4.addActionListener(numberEvent);
+					num5.addActionListener(numberEvent);
+					num6.addActionListener(numberEvent);
+					num7.addActionListener(numberEvent);
+					num8.addActionListener(numberEvent);
+					num9.addActionListener(numberEvent);
+					num0.addActionListener(numberEvent);
+					decimal.addActionListener(numberEvent);
+					clearinfo.addActionListener(numberEvent);
+					onlyOnce = true;
+				}
 				int withdrawAmount = JOptionPane.showConfirmDialog(null, numPad, "Withdraw", JOptionPane.OK_CANCEL_OPTION);
+				if(withdrawAmount == JOptionPane.OK_OPTION) {
+					try {
+						withDep$ = Double.parseDouble(listAmount.getText());
+						if (currentServer.get(iac).getBalance() < withDep$) {
+							JOptionPane.showMessageDialog(frame, "You have insufficient funds to withdraw such amount from your account. Please try again.", "ERROR", JOptionPane.ERROR_MESSAGE);
+						}
+						else if(withDep$ == 0) {
+							JOptionPane.showMessageDialog(frame, "When Withdrawing, the value must be higher than 0. Please try again.", "ERROR", JOptionPane.WARNING_MESSAGE);
+						}
+						else {
+							currentServer.get(iac).withdraw(withDep$);
+							JOptionPane.showMessageDialog(frame, "<html>You have successfully withdrawn " + withDep$ + " credit(s) from your account. <br>You now have " + currentServer.get(iac).getBalance() + "credit(s) remaining.</html>", "Withdrawal Success", JOptionPane.INFORMATION_MESSAGE, tick);
+						}
+					}
+					catch(Exception e) {
+						JOptionPane.showMessageDialog(frame, "Please enter a valid value.", "ERROR", JOptionPane.ERROR_MESSAGE);
+					}
+					finally {
+						listAmount.setText(null);
+						decimal.setEnabled(true);
+						isDecimalUsed = false;
+					}
+				}
 			}
 			else if(event.getSource() == button_10) {
-				
+				balChangeDirects.setText("Enter the amount you would like to deposit: ");
+				if(onlyOnce == false) {
+					num1.addActionListener(numberEvent);
+					num2.addActionListener(numberEvent);
+					num3.addActionListener(numberEvent);
+					num4.addActionListener(numberEvent);
+					num5.addActionListener(numberEvent);
+					num6.addActionListener(numberEvent);
+					num7.addActionListener(numberEvent);
+					num8.addActionListener(numberEvent);
+					num9.addActionListener(numberEvent);
+					num0.addActionListener(numberEvent);
+					decimal.addActionListener(numberEvent);
+					clearinfo.addActionListener(numberEvent);
+					onlyOnce = true;
+				}
+				int withdrawAmount = JOptionPane.showConfirmDialog(null, numPad, "Withdraw", JOptionPane.OK_CANCEL_OPTION);
+				if(withdrawAmount == JOptionPane.OK_OPTION) {
+					try {
+						withDep$ = Double.parseDouble(listAmount.getText());
+						if(withDep$ == 0) {
+							JOptionPane.showMessageDialog(frame, "When Depositing, the value must be higher than 0. Please try again.", "ERROR", JOptionPane.WARNING_MESSAGE);
+						}
+						else {
+							currentServer.get(iac).deposit(withDep$);
+							JOptionPane.showMessageDialog(frame, "<html>You have successfully deposited " + withDep$ + " credit(s) from your account. <br>You now have " + currentServer.get(iac).getBalance() + "credit(s) in your account.</html>", "Deposit Success", JOptionPane.INFORMATION_MESSAGE, tick);
+						}
+					}
+					catch(Exception e) {
+						JOptionPane.showMessageDialog(frame, "Please enter a valid value.", "ERROR", JOptionPane.ERROR_MESSAGE);
+					}
+					finally {
+						listAmount.setText(null);
+						decimal.setEnabled(true);
+						isDecimalUsed = false;
+					}
+				}
 			}
 			else if(event.getSource() == button_11) {
 				
@@ -224,11 +381,12 @@ public class Client {
 
 	// 	JPanel testpanel - new JPanel();
 	// }
+	// The following arraylists are 'servers' that are interchangable by the user
 	private ArrayList<User> asia = new ArrayList<User>();
 	private ArrayList<User> america = new ArrayList<User>();
 	private ArrayList<User> europe = new ArrayList<User>();
 	private ArrayList<User> currentServer;
-	private Byte serverNumber = 1;
+	private Byte serverNumber = 1; // each number represents the corresponding server.
 	private Object[] possibilities = {"Asia", "America", "Europe"};
 	public void mainFrame() {
 		// f = new JFrame("SparkBank 2.0");
@@ -254,6 +412,7 @@ public class Client {
 		help.setMnemonic(KeyEvent.VK_H);
 		jmb.add(help);
 		about = new JMenuItem("About...");
+		about.addActionListener(frameEvent);
 		help.add(about);
 		frame.setVisible(true);
 		frame.setSize(640, 480);
@@ -290,6 +449,7 @@ public class Client {
 		return new JLabel("<html>Server Status: <font color='green'>GOOD</font></html>", SwingConstants.CENTER);
 	}
 	public void page1() {
+		frame.add(p);
 		p.setLayout(new GridLayout(10, 1, 3, 3));
 		p.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
 		welcome = new JLabel("Welcome to SparkBank 2.0 (pre-alpha)", SwingConstants.CENTER);
@@ -298,7 +458,6 @@ public class Client {
 		p.add(status);
 		options = new JLabel("Click on one of the options below: ", SwingConstants.CENTER);
 		p.add(options);
-		frame.add(p);
 		button_1 = new JButton("Create an Account");
 		button_1.setToolTipText("Create a bank account in the current server. Creating a bank account can only be done when the current server is not full.");
 		p.add(button_1);
@@ -350,7 +509,7 @@ public class Client {
 		p.add(confirmPin);
 		confirmPinpf = new JPasswordField(6);
 		p.add(confirmPinpf);
-		asterisk = new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em><b>Note: </b><span color='red'>* </span>fields must be completed.<em></html>");
+		asterisk = new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em><b>Note: </b><span color='red'>* </span>fields must be completed.</em></html>");
 		p.add(asterisk);
 		blank2 = new JLabel();
 		p.add(blank2);
@@ -364,6 +523,7 @@ public class Client {
 		p.add(button_7);
 		button_6.addActionListener(handler);
 		button_7.addActionListener(handler);
+		p.getRootPane().setDefaultButton(button_6);
 	}
 	public void loggedInPage() {
 		loginWelcome = new JLabel("Welcome, " + currentServer.get(iac).getName() + ".", SwingConstants.CENTER);
