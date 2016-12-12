@@ -18,6 +18,7 @@ import javax.swing.ImageIcon;
  * 	* Fixed an issue where the confirmPinpf on the createAnAccountPage() would not recognise an error if there were a non-numerical character on its field.
  *  * Fixed a bug where if the user attempted to login with a blank loginPIN it would return an exception on the terminal
  *	* Fixed a bug where if the user attempted to login with characters on the loginPIN passwordfield it would return an exception on the terminal
+ * 
  * Version 2.0.1 Build 0003 Patch Notes
  *	* Changed all words pre-alpha to beta
  *
