@@ -1,10 +1,27 @@
 import java.util.ArrayList;
+// import java.util.Scanner;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-// import java.util.Scanner;
 // import java.text.NumberFormat;
 import javax.swing.ImageIcon;
+
+/**
+ * @author	Seunghoon Park <spark.knights.rule@gmail.com>
+ * @version 2.0.1(beta) Build 0002
+ * @date 12th December 2016 12:02PM
+ * @since 2.0.1
+ * 
+ * Version 2.0.1 Build 0002 Patch notes:
+ *	* Added a modifyAccountPage()!
+ *		* Constructed very similarly to the createUserAccountPage, except it modifies the user's personal information instead
+ * 	* Fixed an issue where the confirmPinpf on the createAnAccountPage() would not recognise an error if there were a non-numerical character on its field.
+ *  * Fixed a bug where if the user attempted to login with a blank loginPIN it would return an exception on the terminal
+ *	* Fixed a bug where if the user attempted to login with characters on the loginPIN passwordfield it would return an exception on the terminal
+ *
+ *
+ *
+ */
 
 public class Client {
 	// required for frame, page 1 and miscellaneous
@@ -25,6 +42,7 @@ public class Client {
 	private JLabel blank, blank2, blank3, blank4, blank5; // blank fillers used to fill a blank grid
 	private ActiveEvent handler = new ActiveEvent(); // used for main buttons
 	private Boolean confirmBoolean = true; // checks when registering whether the entered PIN number is actually only consisted of numbers.
+	private Boolean confirmBoolean2 = true;
 	//required for createAnAccountPage() panel;
 	private JLabel description;
 	private JLabel newFirstName;
@@ -40,13 +58,24 @@ public class Client {
 	private JLabel asterisk;
 	private JButton button_6;
 	private JButton button_7;
-	// private String cName;
-	// private String cEmail;
-	// private Integer cPIN;
+	//required for modifyAccountPage()
+	private JLabel mAPDescription;
+	private JLabel mAPFirstName;
+	private JLabel mAPLastName;
+	private JLabel maPPIN;
+	private JLabel maPconfirmPIN;
+	private JTextField mAPFirstNametf;
+	private JTextField mAPLastNametf;
+	private JPasswordField maPPINpf;
+	private JPasswordField maPconfirmPINpf;
+	private JButton button_13;
+	private JButton button_14;
+	private Boolean confirmBoolean3 = true;
 	// used for logging in
 	private JTextField loginAccountID = new JTextField();
 	private JPasswordField loginPIN = new JPasswordField();
 	private JCheckBox rememberMe = new JCheckBox("Remember Me");
+	private Boolean stringLoginPreventer;
 	// used for logged in
 	private JLabel loginWelcome;
 	private JLabel loginMenu;
@@ -82,8 +111,11 @@ public class Client {
 	private double withDep$;
 	private boolean isDecimalUsed = false;
 	private ImageIcon tick = createImageIcon("tick.png");
-	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.0 (Pre-Alpha)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.0.1 Build 0001</span></html>");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.0 (Pre-Alpha)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.0.1 Build 0002</span></html>");
 	private Object[] aboutMsg = {aboutMsgLabel};
+	// used for modifying user information while logged in
+	private JPasswordField modLoginPIN = new JPasswordField();
+	private Object[] modAccountMessage = {"<html>Please enter your account <br>PIN for further access: </html>", modLoginPIN};
 	// used to generate the tick icon (study this in-depth later)
 	protected static ImageIcon createImageIcon(String path) {
         java.net.URL imgURL = Client.class.getResource(path);
@@ -172,34 +204,46 @@ public class Client {
 			else if(event.getSource() == button_2) {
 				int loginOption = JOptionPane.showConfirmDialog(null, message, "Login", JOptionPane.OK_CANCEL_OPTION);
 				if(loginOption == JOptionPane.OK_OPTION) {
-					if(currentServer.size() != 0) {
-						for(iac = 0; iac < currentServer.size(); iac++) {
-							if(currentServer.get(iac).getAccountID() == Integer.parseInt(loginAccountID.getText())) {
-								if(currentServer.get(iac).getPIN() == Integer.parseInt(loginPIN.getText())) {
-									JOptionPane.showMessageDialog(frame, "Welcome " + currentServer.get(iac).getName() + "! You are now logged in.");
-									clearpage();
-									loggedInPage();
-									break;
+					if(!(loginPIN.getText().equals(""))) {
+						if(currentServer.size() != 0) {
+							for(iac = 0; iac < currentServer.size(); iac++) {
+								if(currentServer.get(iac).getAccountID() == Integer.parseInt(loginAccountID.getText())) {
+									try {
+										if(currentServer.get(iac).getPIN() == Integer.parseInt(loginPIN.getText())) {
+											JOptionPane.showMessageDialog(frame, "Welcome " + currentServer.get(iac).getName() + "! You are now logged in.");
+											clearpage();
+											loggedInPage();
+											break;
+										}
+										else {
+											JOptionPane.showMessageDialog(frame, "Incorrect PIN Number. Please Try again.");
+											break;
+										}
+									}
+									catch (NumberFormatException e) {
+										JOptionPane.showMessageDialog(frame, "Please enter numerical characters only on the PIN field.", "Login Error", JOptionPane.ERROR_MESSAGE);
+										stringLoginPreventer = true;
+									}
 								}
-								else {
-									JOptionPane.showMessageDialog(frame, "Incorrect PIN Number. Please Try again.");
-									break;
-								}
+								if(iac+1 == currentServer.size() && !(stringLoginPreventer))
+									JOptionPane.showMessageDialog(frame, "Incorrect Account ID or PIN Number. Please Try again.");
+								stringLoginPreventer = true;
 							}
-							if(iac+1 == currentServer.size())
-								JOptionPane.showMessageDialog(frame, "Incorrect Account ID or PIN Number. Please Try again.");
 						}
-					}
-					else if(loginAccountID.getText().equals("") || loginPIN.getText().equals("") || loginAccountID.getText().equals(null) || loginPIN.getText().equals(null)) {
-						JOptionPane.showMessageDialog(frame, "Please enter your Account ID and PIN Number correctly.");
+						else if(loginAccountID.getText().equals("") || loginPIN.getText().equals("") || loginAccountID.getText().equals(null) || loginPIN.getText().equals(null)) {
+							JOptionPane.showMessageDialog(frame, "Please enter your Account ID and PIN Number correctly.");
+						}
+						else {
+							JOptionPane.showMessageDialog(frame, "There are no registered users in this server.");
+						}
+						if(!(rememberMe.isSelected())) {
+							loginAccountID.setText("");
+						}
+						loginPIN.setText("");
 					}
 					else {
-						JOptionPane.showMessageDialog(frame, "There are no registered users in this server.");
+						JOptionPane.showMessageDialog(frame, "Please enter your PIN number.");
 					}
-					if(!(rememberMe.isSelected())) {
-						loginAccountID.setText("");
-					}
-					loginPIN.setText("");
 				}
 				else {
 					if(!(rememberMe.isSelected())) {
@@ -252,8 +296,17 @@ public class Client {
 							break;
 						}
 					}
-					if(confirmBoolean == true) {
-						if(newPINpf.getText().length() != 6) {
+					if(confirmBoolean) {
+						for(int i = 0; i < confirmPinpf.getText().length(); i++) {
+							if(confirmPinpf.getText().charAt(i) < '0' || confirmPinpf.getText().charAt(i) > '9') {
+								JOptionPane.showMessageDialog(frame, "The PIN Numbers must contain only numbers.");
+								confirmBoolean = false;
+								break;
+							}
+						}
+					}
+					if(confirmBoolean) {
+						if(newPINpf.getText().length() != 6 || confirmPinpf.getText().length() != 6) {
 							JOptionPane.showMessageDialog(frame, "The PIN Number you entered is not 6 digits.");
 						}
 						else if(Integer.parseInt(newPINpf.getText()) != Integer.parseInt(confirmPinpf.getText())) {
@@ -363,12 +416,80 @@ public class Client {
 				}
 			}
 			else if(event.getSource() == button_11) {
-				
+				int modOption = JOptionPane.showConfirmDialog(null, modAccountMessage, "Confirm PIN", JOptionPane.OK_CANCEL_OPTION);
+				if(modOption == JOptionPane.OK_OPTION) {
+					try {
+						if(currentServer.get(iac).getPIN() == Integer.parseInt(modLoginPIN.getText())) {
+							clearpage();
+							modifyAccountPage();
+							modLoginPIN.setText("");
+						}
+						else {
+							JOptionPane.showMessageDialog(frame, "The PIN you enetered was incorrect. Please try again.", "ERROR", JOptionPane.ERROR_MESSAGE);
+							modLoginPIN.setText("");
+						}
+					}
+					catch (Exception e) {
+						JOptionPane.showMessageDialog(frame, "Please enter your 6-digit PIN code for your account.", "ERROR", JOptionPane.ERROR_MESSAGE);
+					}
+				}
 			}
 			else if(event.getSource() == button_12) {
 				JOptionPane.showMessageDialog(frame, "You have successfully logged out. You will be redirected to the main page.");
 				clearpage();
 				page1();
+			}
+			else if(event.getSource() == button_13) {
+				if(mAPFirstNametf.getText().equals("") || mAPFirstNametf.getText().equals(null)) {
+					JOptionPane.showMessageDialog(frame, "Please enter your first name.", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if(mAPLastNametf.getText().equals("") || mAPLastNametf.getText().equals(null)) {
+					JOptionPane.showMessageDialog(frame, "Please enter your last name.", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+				try{
+					if(maPPINpf.getText().equals(null) || maPPINpf.getText().equals("") || maPPINpf.getText().length() != 6)
+						JOptionPane.showMessageDialog(frame, "You must input a valid 6-digit PIN sequence.", "Modification Error.", JOptionPane.ERROR_MESSAGE);
+					else {
+						for(int i = 0; i < maPPINpf.getText().length(); i++) {
+							if(maPPINpf.getText().charAt(i) < '0' || maPPINpf.getText().charAt(i) > '9') {
+								JOptionPane.showMessageDialog(frame, "The PIN must contain only numbers.");
+								confirmBoolean3 = false;
+								break;
+							}
+						}
+						if(confirmBoolean3) {
+							for(int i = 0; i < maPPINpf.getText().length(); i++) {
+								if(maPconfirmPINpf.getText().charAt(i) < '0' || maPconfirmPINpf.getText().charAt(i) > '9') {
+									JOptionPane.showMessageDialog(frame, "The PIN must contain only numbers.");
+									confirmBoolean3 = false;
+									break;
+								}
+							}
+						}
+						if(confirmBoolean3) {
+							if(Integer.parseInt(maPPINpf.getText()) != Integer.parseInt(maPconfirmPINpf.getText())) {
+								JOptionPane.showMessageDialog(frame, "Your PIN does not match your confirmation PIN.");
+							}
+							else {
+								currentServer.get(iac).setName(mAPFirstNametf.getText() + " " + mAPLastNametf.getText());
+								currentServer.get(iac).setPIN(Integer.parseInt(maPPINpf.getText()));
+								JOptionPane.showMessageDialog(frame, "Changes saved!", "Success!", JOptionPane.INFORMATION_MESSAGE, tick);
+								clearpage();
+								loggedInPage();
+							}
+						}
+					}
+				}
+				catch(StringIndexOutOfBoundsException e) {
+					JOptionPane.showMessageDialog(frame, "Please enter your confirmation PIN.");
+				}
+				finally {
+					confirmBoolean3 = true;
+				}
+			}
+			else if(event.getSource() == button_14) {
+				clearpage();
+				loggedInPage();
 			}
 
 		}
@@ -545,6 +666,69 @@ public class Client {
 		p.add(button_10);
 		p.add(button_11);
 		p.add(button_12);
+	}
+	/**
+	 * modifyAccountPage()
+	 * @param void
+	 * @return new screen that gives options to users on modifying the account
+	 * @needs initial label, first name label, last name label, pin label and their respective textfields
+	 * needs at least 10 labels; suspend max label to 20
+	 *
+	 */
+	public void modifyAccountPage() {
+		// Scanner delim = new Scanner(currentServer.get(iac).getName()).useDelimiter(" ");
+		String[] userName = currentServer.get(iac).getName().split(" ");
+		String userFirstName = "";
+		String userLastName = "";
+		if(userName.length == 2) {
+			userFirstName = userName[0];
+			userLastName = userName[1];
+		}
+		else {
+			for(int i = 0; i < userName.length; i++) {
+				if(i == 0)
+					userFirstName = userName[i];
+				else if(i < userName.length - 1)
+					userFirstName = userFirstName + " " + userName[i];
+				else
+					userLastName = userName[i];
+			}
+		}
+		mAPDescription = new JLabel("Modify all necessary changes below:");
+		p.add(mAPDescription);
+		blank = new JLabel();
+		p.add(blank);
+		mAPFirstName = new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;First Name: </html>");
+		mAPFirstNametf = new JTextField(userFirstName);
+		mAPLastName = new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Name: </html>");
+		mAPLastNametf = new JTextField(userLastName);
+		maPPIN = new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PIN Number: </html>");
+		maPPINpf = new JPasswordField(6);
+		maPconfirmPIN = new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Confirm PIN Number: </html>");
+		maPconfirmPINpf = new JPasswordField(6);
+		blank2 = new JLabel();
+		blank3 = new JLabel();
+		blank4 = new JLabel();
+		blank5 = new JLabel();
+		button_13 = new JButton("Confirm");
+		button_14 = new JButton("Cancel");
+		button_13.addActionListener(handler);
+		button_14.addActionListener(handler);
+		p.add(mAPFirstName);
+		p.add(mAPFirstNametf);
+		p.add(mAPLastName);
+		p.add(mAPLastNametf);
+		p.add(maPPIN);
+		p.add(maPPINpf);
+		p.add(maPconfirmPIN);
+		p.add(maPconfirmPINpf);
+		p.add(blank2);
+		p.add(blank3);
+		p.add(blank4);
+		p.add(blank5);
+		p.add(button_13);
+		p.add(button_14);
+		p.getRootPane().setDefaultButton(button_13);
 	}
 	public void clearpage() {
 		p.removeAll();
