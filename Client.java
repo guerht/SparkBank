@@ -8,8 +8,8 @@ import javax.swing.ImageIcon;
 
 /**
  * @author	Seunghoon Park <spark.knights.rule@gmail.com>
- * @version 2.0.1(beta) Build 0002
- * @date 12th December 2016 12:02PM
+ * @version 2.0.1(beta) Build 0003
+ * @date 12th December 2016 01:35PM
  * @since 2.0.1
  * 
  * Version 2.0.1 Build 0002 Patch notes:
@@ -18,6 +18,8 @@ import javax.swing.ImageIcon;
  * 	* Fixed an issue where the confirmPinpf on the createAnAccountPage() would not recognise an error if there were a non-numerical character on its field.
  *  * Fixed a bug where if the user attempted to login with a blank loginPIN it would return an exception on the terminal
  *	* Fixed a bug where if the user attempted to login with characters on the loginPIN passwordfield it would return an exception on the terminal
+ * Version 2.0.1 Build 0003 Patch Notes
+ *	* Changed all words pre-alpha to beta
  *
  *
  *
@@ -26,7 +28,7 @@ import javax.swing.ImageIcon;
 public class Client {
 	// required for frame, page 1 and miscellaneous
 	private JMenuBar jmb;
-	private final static JFrame frame = new JFrame("SparkBank 2.0 (pre-alpha)");
+	private final static JFrame frame = new JFrame("SparkBank 2.0 (beta)");
 	private JMenu file, help, cp;
 	private JMenuItem read, save, refresh, exit, about;
 	private static JPanel p = new JPanel();
@@ -111,7 +113,7 @@ public class Client {
 	private double withDep$;
 	private boolean isDecimalUsed = false;
 	private ImageIcon tick = createImageIcon("tick.png");
-	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.0 (Pre-Alpha)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.0.1 Build 0002</span></html>");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.0.1 Build 0003</span></html>");
 	private Object[] aboutMsg = {aboutMsgLabel};
 	// used for modifying user information while logged in
 	private JPasswordField modLoginPIN = new JPasswordField();
@@ -573,7 +575,7 @@ public class Client {
 		frame.add(p);
 		p.setLayout(new GridLayout(10, 1, 3, 3));
 		p.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-		welcome = new JLabel("Welcome to SparkBank 2.0 (pre-alpha)", SwingConstants.CENTER);
+		welcome = new JLabel("Welcome to SparkBank 2.0 (beta)", SwingConstants.CENTER);
 		p.add(welcome);
 		refreshServer();
 		p.add(status);
