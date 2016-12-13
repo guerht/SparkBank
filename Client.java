@@ -8,7 +8,7 @@ import javax.swing.ImageIcon;
 
 /**
  * @author	Seunghoon Park <spark.knights.rule@gmail.com>
- * @version 2.0.1(beta) Build 0003
+ * @version 2.1.0(beta) Build 0004
  * @date 12th December 2016 01:35PM
  * @since 2.0.1
  * 
@@ -22,6 +22,9 @@ import javax.swing.ImageIcon;
  * Version 2.0.1 Build 0003 Patch Notes
  *	* Changed all words pre-alpha to beta
  *
+ * Version 2.1.0 Build 0004 Patch Notes
+ *	* Added an administrative settings page!
+ *	* Added Administrative.java, which is a read-only class that has information regarding administrative logins.
  *
  *
  */
@@ -29,8 +32,8 @@ import javax.swing.ImageIcon;
 public class Client {
 	// required for frame, page 1 and miscellaneous
 	private JMenuBar jmb;
-	private final static JFrame frame = new JFrame("SparkBank 2.0 (beta)");
-	private JMenu file, help, cp;
+	private final static JFrame frame = new JFrame("SparkBank 2.1.0 (beta)");
+	private JMenu file, help;
 	private JMenuItem read, save, refresh, exit, about;
 	private static JPanel p = new JPanel();
 	private JLabel welcome;
@@ -114,11 +117,18 @@ public class Client {
 	private double withDep$;
 	private boolean isDecimalUsed = false;
 	private ImageIcon tick = createImageIcon("tick.png");
-	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.0.1 Build 0003</span></html>");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.0 Build 0004</span></html>");
 	private Object[] aboutMsg = {aboutMsgLabel};
 	// used for modifying user information while logged in
 	private JPasswordField modLoginPIN = new JPasswordField();
 	private Object[] modAccountMessage = {"<html>Please enter your account <br>PIN for further access: </html>", modLoginPIN};
+	// Administrator account
+	// private Administrator administrator = new Administrator();
+	private JTextField adminUserName = new JTextField();
+	private JPasswordField adminPassWord = new JPasswordField();
+	private Object[] adminLogin = {"Administrator username: ", adminUserName, "Password: ", adminPassWord};
+	private Boolean confirmBoolean4 = true;
+	private Boolean confirmBoolean5 = true;
 	// used to generate the tick icon (study this in-depth later)
 	protected static ImageIcon createImageIcon(String path) {
         java.net.URL imgURL = Client.class.getResource(path);
@@ -282,7 +292,42 @@ public class Client {
 				}
 			}
 			else if(event.getSource() == button_5) {
-				System.out.println(currentServer.size());
+				int loginOption2 = JOptionPane.showConfirmDialog(null, adminLogin, "Administrative Login", JOptionPane.OK_CANCEL_OPTION);
+				if(loginOption2 == JOptionPane.OK_OPTION) {
+					if(adminUserName.getText().equals(null) || adminUserName.getText().equals("")) {
+						JOptionPane.showMessageDialog(null, "Please enter the administrative username and password.");
+					}
+					else if(!(adminUserName.getText().equals(Administrator.getUsername()))) {
+						JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
+					}
+					else if(adminPassWord.getText().equals(null) || adminPassWord.getText().equals("")) {
+						JOptionPane.showMessageDialog(null, "Please enter the administrative username and password.");
+					}
+					else {
+						if(adminPassWord.getPassword().length != Administrator.getPassword().length) {
+							JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
+							confirmBoolean4 = false;
+						}
+						if(confirmBoolean4) {
+							for(int i = 0; i < Administrator.getPassword().length; i++) {
+								if(adminPassWord.getPassword()[i] != Administrator.getPassword()[i]) {
+									confirmBoolean5 = false;
+									JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
+									break;
+								}
+							}
+							if(confirmBoolean5) {
+								clearpage();
+								administratorPage();
+							}
+						}
+						
+					}
+				}
+				confirmBoolean4 = true;
+				confirmBoolean5 = true;
+				adminUserName.setText("");
+				adminPassWord.setText("");
 			}
 			else if(event.getSource() == button_4) {
 				System.exit(0);
@@ -513,7 +558,7 @@ public class Client {
 	private Byte serverNumber = 1; // each number represents the corresponding server.
 	private Object[] possibilities = {"Asia", "America", "Europe"};
 	public void mainFrame() {
-		// f = new JFrame("SparkBank 2.0");
+		// f = new JFrame("SparkBank 2.1.0");
 		FrameEvent frameEvent = new FrameEvent();
 		jmb = new JMenuBar();
 		frame.setJMenuBar(jmb);
@@ -576,7 +621,7 @@ public class Client {
 		frame.add(p);
 		p.setLayout(new GridLayout(10, 1, 3, 3));
 		p.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-		welcome = new JLabel("Welcome to SparkBank 2.0 (beta)", SwingConstants.CENTER);
+		welcome = new JLabel("Welcome to SparkBank 2.1.0 (beta)", SwingConstants.CENTER);
 		p.add(welcome);
 		refreshServer();
 		p.add(status);
@@ -591,7 +636,8 @@ public class Client {
 		button_3 = new JButton("Change Server");
 		button_3.setToolTipText("<html>Change the server in which the client is to be accessed. <br>Note that different servers contain different account information. <br>An account made in one server cannot be used to be accessed in another.</html>");
 		p.add(button_3);
-		button_5 = new JButton("Help");
+		button_5 = new JButton("Administrator Settings");
+		button_5.setToolTipText("<html>Configure and manage settings in the program. </html>");
 		p.add(button_5);
 		button_4 = new JButton("Exit");
 		p.add(button_4);
@@ -732,6 +778,9 @@ public class Client {
 		p.add(button_13);
 		p.add(button_14);
 		p.getRootPane().setDefaultButton(button_13);
+	}
+	public void administratorPage() {
+
 	}
 	public void clearpage() {
 		p.removeAll();
