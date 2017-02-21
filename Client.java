@@ -8,8 +8,8 @@ import javax.swing.ImageIcon;
 
 /**
  * @author	Seunghoon Park <spark.knights.rule@gmail.com>
- * @version 2.1.0(beta) Build 0004
- * @date 12th December 2016 01:35PM
+ * @version 2.1.0(beta) Build 0005
+ * @date 21st January 2017 11:05PM
  * @since 2.0.1
  * 
  * Version 2.0.1 Build 0002 Patch notes:
@@ -25,6 +25,11 @@ import javax.swing.ImageIcon;
  * Version 2.1.0 Build 0004 Patch Notes
  *	* Added an administrative settings page!
  *	* Added Administrative.java, which is a read-only class that has information regarding administrative logins.
+ *
+ *Version 2.1.0 Build 0005 Patch Notes
+ *	* Added a feature where if a user attempts five or more unsuccessful administrative logins the program will lock the administrative settings feature
+ *
+ *
  *
  *
  */
@@ -117,7 +122,7 @@ public class Client {
 	private double withDep$;
 	private boolean isDecimalUsed = false;
 	private ImageIcon tick = createImageIcon("tick.png");
-	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.0 Build 0004</span></html>");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.0 Build 0005</span></html>");
 	private Object[] aboutMsg = {aboutMsgLabel};
 	// used for modifying user information while logged in
 	private JPasswordField modLoginPIN = new JPasswordField();
@@ -129,6 +134,7 @@ public class Client {
 	private Object[] adminLogin = {"Administrator username: ", adminUserName, "Password: ", adminPassWord};
 	private Boolean confirmBoolean4 = true;
 	private Boolean confirmBoolean5 = true;
+	private static byte administratorUnsuccessfulAttemptCount = 0;
 	// used to generate the tick icon (study this in-depth later)
 	protected static ImageIcon createImageIcon(String path) {
         java.net.URL imgURL = Client.class.getResource(path);
@@ -292,42 +298,54 @@ public class Client {
 				}
 			}
 			else if(event.getSource() == button_5) {
-				int loginOption2 = JOptionPane.showConfirmDialog(null, adminLogin, "Administrative Login", JOptionPane.OK_CANCEL_OPTION);
-				if(loginOption2 == JOptionPane.OK_OPTION) {
-					if(adminUserName.getText().equals(null) || adminUserName.getText().equals("")) {
-						JOptionPane.showMessageDialog(null, "Please enter the administrative username and password.");
-					}
-					else if(!(adminUserName.getText().equals(Administrator.getUsername()))) {
-						JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
-					}
-					else if(adminPassWord.getText().equals(null) || adminPassWord.getText().equals("")) {
-						JOptionPane.showMessageDialog(null, "Please enter the administrative username and password.");
-					}
-					else {
-						if(adminPassWord.getPassword().length != Administrator.getPassword().length) {
-							JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
-							confirmBoolean4 = false;
+				if(administratorUnsuccessfulAttemptCount >= 5)
+					JOptionPane.showMessageDialog(null, "You have made too many unsuccessful attempts trying to gain administrative access.", "Login Error", JOptionPane.ERROR_MESSAGE);
+				while (administratorUnsuccessfulAttemptCount < 5) {
+					int loginOption2 = JOptionPane.showConfirmDialog(null, adminLogin, "Administrative Login", JOptionPane.OK_CANCEL_OPTION);
+					if(loginOption2 == JOptionPane.OK_OPTION) {
+						if(adminUserName.getText().equals(null) || adminUserName.getText().equals("")) {
+							JOptionPane.showMessageDialog(null, "Please enter the administrative username and password.");
+							administratorUnsuccessfulAttemptCount++;
 						}
-						if(confirmBoolean4) {
-							for(int i = 0; i < Administrator.getPassword().length; i++) {
-								if(adminPassWord.getPassword()[i] != Administrator.getPassword()[i]) {
-									confirmBoolean5 = false;
-									JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
-									break;
+						else if(!(adminUserName.getText().equals(Administrator.getUsername()))) {
+							JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
+							administratorUnsuccessfulAttemptCount++;
+						}
+						else if(adminPassWord.getText().equals(null) || adminPassWord.getText().equals("")) {
+							JOptionPane.showMessageDialog(null, "Please enter the administrative username and password.");
+							administratorUnsuccessfulAttemptCount++;
+						}
+						else {
+							if(adminPassWord.getPassword().length != Administrator.getPassword().length) {
+								JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
+								confirmBoolean4 = false;
+								administratorUnsuccessfulAttemptCount++;
+							}
+							if(confirmBoolean4) {
+								for(int i = 0; i < Administrator.getPassword().length; i++) {
+									if(adminPassWord.getPassword()[i] != Administrator.getPassword()[i]) {
+										confirmBoolean5 = false;
+										JOptionPane.showMessageDialog(null, "Incorrect username or password. Please try again.", "Login error", JOptionPane.ERROR_MESSAGE);
+										administratorUnsuccessfulAttemptCount++;
+										break;
+									}
+								}
+								if(confirmBoolean5) {
+									administratorUnsuccessfulAttemptCount = 0;
+									clearpage();
+									administratorPage();
 								}
 							}
-							if(confirmBoolean5) {
-								clearpage();
-								administratorPage();
-							}
+							
 						}
-						
 					}
+					confirmBoolean4 = true;
+					confirmBoolean5 = true;
+					adminUserName.setText("");
+					adminPassWord.setText("");
+					if(administratorUnsuccessfulAttemptCount >= 5)
+						JOptionPane.showMessageDialog(null, "You have made too many unsuccessful attempts trying to gain administrative access.", "Login Error", JOptionPane.ERROR_MESSAGE);
 				}
-				confirmBoolean4 = true;
-				confirmBoolean5 = true;
-				adminUserName.setText("");
-				adminPassWord.setText("");
 			}
 			else if(event.getSource() == button_4) {
 				System.exit(0);
