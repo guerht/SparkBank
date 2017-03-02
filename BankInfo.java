@@ -52,11 +52,16 @@ public class BankInfo {
 	public void listNames() {
 		if (listOfNames.size() > 0) {
 			System.out.print("\nRegistered Users: ");
-			for (int i = 0; i < listOfNames.size(); i++) {
-				if(i != listOfNames.size()-1)
-					System.out.print(listOfNames.get(i) + ", ");
-				else
-					System.out.println("and " + listOfNames.get(i) + ". ");
+			if(listOfNames.size() != 1) {
+				for (int i = 0; i < listOfNames.size(); i++) {
+					if(i != listOfNames.size()-1)
+						System.out.print(listOfNames.get(i) + ", ");
+					else
+						System.out.println("and " + listOfNames.get(i) + ". ");
+				}
+			}
+			else {
+				System.out.println(listOfNames.get(0) + ".");
 			}
 		}
 		else {

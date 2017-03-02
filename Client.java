@@ -8,8 +8,8 @@ import javax.swing.ImageIcon;
 
 /**
  * @author	Seunghoon Park <spark.knights.rule@gmail.com>
- * @version 2.1.0(beta) Build 0005
- * @date 21st January 2017 11:05PM
+ * @version 2.1.0(beta) Build 0006
+ * @date 2nd March 2017 11:52AM
  * @since 2.0.1
  * 
  * Version 2.0.1 Build 0002 Patch notes:
@@ -26,9 +26,12 @@ import javax.swing.ImageIcon;
  *	* Added an administrative settings page!
  *	* Added Administrative.java, which is a read-only class that has information regarding administrative logins.
  *
- *Version 2.1.0 Build 0005 Patch Notes
+ * Version 2.1.0 Build 0005 Patch Notes
  *	* Added a feature where if a user attempts five or more unsuccessful administrative logins the program will lock the administrative settings feature
  *
+ * Version 2.1.0 Build 0006 Patch Notes
+ *	* Fixed an issue where the administrative login pane would keep popping up after selecting buttons other than ok
+ *	* Fixed an issue where the administrative login pane would keep popping up after successfully logging in
  *
  *
  *
@@ -122,7 +125,7 @@ public class Client {
 	private double withDep$;
 	private boolean isDecimalUsed = false;
 	private ImageIcon tick = createImageIcon("tick.png");
-	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.0 Build 0005</span></html>");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.0 Build 0006</span></html>");
 	private Object[] aboutMsg = {aboutMsgLabel};
 	// used for modifying user information while logged in
 	private JPasswordField modLoginPIN = new JPasswordField();
@@ -135,6 +138,7 @@ public class Client {
 	private Boolean confirmBoolean4 = true;
 	private Boolean confirmBoolean5 = true;
 	private static byte administratorUnsuccessfulAttemptCount = 0;
+	private Boolean loopBreaker = false;
 	// used to generate the tick icon (study this in-depth later)
 	protected static ImageIcon createImageIcon(String path) {
         java.net.URL imgURL = Client.class.getResource(path);
@@ -300,9 +304,12 @@ public class Client {
 			else if(event.getSource() == button_5) {
 				if(administratorUnsuccessfulAttemptCount >= 5)
 					JOptionPane.showMessageDialog(null, "You have made too many unsuccessful attempts trying to gain administrative access.", "Login Error", JOptionPane.ERROR_MESSAGE);
-				while (administratorUnsuccessfulAttemptCount < 5) {
+				while (administratorUnsuccessfulAttemptCount < 5 && !(loopBreaker)) {
 					int loginOption2 = JOptionPane.showConfirmDialog(null, adminLogin, "Administrative Login", JOptionPane.OK_CANCEL_OPTION);
-					if(loginOption2 == JOptionPane.OK_OPTION) {
+					if(loginOption2 != JOptionPane.OK_OPTION) {
+						loopBreaker = true;
+					}
+					else if(loginOption2 == JOptionPane.OK_OPTION) {
 						if(adminUserName.getText().equals(null) || adminUserName.getText().equals("")) {
 							JOptionPane.showMessageDialog(null, "Please enter the administrative username and password.");
 							administratorUnsuccessfulAttemptCount++;
@@ -334,9 +341,9 @@ public class Client {
 									administratorUnsuccessfulAttemptCount = 0;
 									clearpage();
 									administratorPage();
+									loopBreaker = true;
 								}
 							}
-							
 						}
 					}
 					confirmBoolean4 = true;
@@ -346,6 +353,7 @@ public class Client {
 					if(administratorUnsuccessfulAttemptCount >= 5)
 						JOptionPane.showMessageDialog(null, "You have made too many unsuccessful attempts trying to gain administrative access.", "Login Error", JOptionPane.ERROR_MESSAGE);
 				}
+				loopBreaker = false;
 			}
 			else if(event.getSource() == button_4) {
 				System.exit(0);
@@ -521,6 +529,7 @@ public class Client {
 								JOptionPane.showMessageDialog(frame, "The PIN must contain only numbers.");
 								confirmBoolean3 = false;
 								break;
+
 							}
 						}
 						if(confirmBoolean3) {
