@@ -1,15 +1,16 @@
 import java.util.ArrayList;
-// import java.util.Scanner;
+import java.util.Scanner;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 // import java.text.NumberFormat;
 import javax.swing.ImageIcon;
+import java.util.Random;
 
 /**
  * @author	Seunghoon Park <spark.knights.rule@gmail.com>
- * @version 2.1.0(beta) Build 0006
- * @date 2nd March 2017 11:52AM
+ * @version 2.1.0(beta) Build 0007
+ * @date 11th March 2017 12:35AM
  * @since 2.0.1
  * 
  * Version 2.0.1 Build 0002 Patch notes:
@@ -33,6 +34,14 @@ import javax.swing.ImageIcon;
  *	* Fixed an issue where the administrative login pane would keep popping up after selecting buttons other than ok
  *	* Fixed an issue where the administrative login pane would keep popping up after successfully logging in
  *
+ * Version 2.1.0 Build 0007 Patch Notes
+ *	* Created an algorithm that could change the password for Administrative login
+ *	* Created a new JMenu and two JMenuItem: tools, createP and createNP, respectively
+ *	* Random() seems to not generate a random length for generating a new administrative password. Must be sought out
+ *	* Whenever the user attempts to request for an administrative password, a joptionpanel message dialog will pop out
+ *
+ *
+ *
  *
  *
  */
@@ -41,8 +50,8 @@ public class Client {
 	// required for frame, page 1 and miscellaneous
 	private JMenuBar jmb;
 	private final static JFrame frame = new JFrame("SparkBank 2.1.0 (beta)");
-	private JMenu file, help;
-	private JMenuItem read, save, refresh, exit, about;
+	private JMenu file, tools, help;
+	private JMenuItem read, save, refresh, exit, requestP, requestNP, about;
 	private static JPanel p = new JPanel();
 	private JLabel welcome;
 	private JLabel status;
@@ -125,7 +134,7 @@ public class Client {
 	private double withDep$;
 	private boolean isDecimalUsed = false;
 	private ImageIcon tick = createImageIcon("tick.png");
-	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.0 Build 0006</span></html>");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.0 Build 0007</span></html>");
 	private Object[] aboutMsg = {aboutMsgLabel};
 	// used for modifying user information while logged in
 	private JPasswordField modLoginPIN = new JPasswordField();
@@ -139,6 +148,7 @@ public class Client {
 	private Boolean confirmBoolean5 = true;
 	private static byte administratorUnsuccessfulAttemptCount = 0;
 	private Boolean loopBreaker = false;
+	private Random randie;
 	// used to generate the tick icon (study this in-depth later)
 	protected static ImageIcon createImageIcon(String path) {
         java.net.URL imgURL = Client.class.getResource(path);
@@ -149,6 +159,12 @@ public class Client {
             return null;
         }
     }
+    // for generating random number 
+    private int randomNumber() {
+    	randie = new Random();
+    	return randie.nextInt(4)+8;
+    	// return ((int) (Math.random()*5))+8;
+    }
     // actionlistener for jframe options
 	private class FrameEvent implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
@@ -158,6 +174,16 @@ public class Client {
 			}
 			else if(event.getSource() == exit) {
 				System.exit(0);
+			}
+			else if(event.getSource() == requestP) {
+				JOptionPane.showMessageDialog(null, "Check your command line for the generated password!", "Notification", JOptionPane.INFORMATION_MESSAGE);
+				System.out.println(Administrator.getPassword());
+			}
+			else if(event.getSource() == requestNP) {
+				JOptionPane.showMessageDialog(null, "Check your command line for the newly generated password!", "Notification", JOptionPane.INFORMATION_MESSAGE);
+				Administrator.setPassword();
+				Administrator.resetPasswordLength(randomNumber());
+				System.out.println(Administrator.getPassword());
 			}
 			else if(event.getSource() == about) {
 				JOptionPane.showOptionDialog(null, aboutMsg, "About...", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);	
@@ -604,6 +630,15 @@ public class Client {
 		exit = new JMenuItem("Exit");
 		exit.addActionListener(frameEvent);
 		file.add(exit);
+		tools = new JMenu("Tools");
+		tools.setMnemonic(KeyEvent.VK_T);
+		jmb.add(tools);
+		requestP = new JMenuItem("Request Administrative Password...");
+		tools.add(requestP);
+		requestP.addActionListener(frameEvent);
+		requestNP = new JMenuItem("Request New Administrative Password...");
+		tools.add(requestNP);
+		requestNP.addActionListener(frameEvent);
 		help = new JMenu("Help");
 		help.setMnemonic(KeyEvent.VK_H);
 		jmb.add(help);
@@ -613,6 +648,8 @@ public class Client {
 		frame.setVisible(true);
 		frame.setSize(640, 480);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		Administrator.createPassword(randomNumber());
 	}
 	public void refreshServer() {
 		if(serverNumber == 1)
