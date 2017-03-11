@@ -9,8 +9,8 @@ import java.util.Random;
 
 /**
  * @author	Seunghoon Park <spark.knights.rule@gmail.com>
- * @version 2.1.0(beta) Build 0007
- * @date 11th March 2017 12:35AM
+ * @version 2.1.1 Build 0008
+ * @date 11th March 2017 12:48PM
  * @since 2.0.1
  * 
  * Version 2.0.1 Build 0002 Patch notes:
@@ -40,8 +40,12 @@ import java.util.Random;
  *	* Random() seems to not generate a random length for generating a new administrative password. Must be sought out
  *	* Whenever the user attempts to request for an administrative password, a joptionpanel message dialog will pop out
  *
- *
- *
+ * Version 2.1.1 Build 0008 Patch Notes
+ *	* Finally a program that is no longer in its beta stage!
+ *	* Administrative page is now fully functional! There, you can:
+ *		* View all registered users in the server
+ *		* Copy, move or remove registered users in the server
+ *	* The getString() method in the Administrator class was reborn for usage
  *
  *
  */
@@ -49,7 +53,7 @@ import java.util.Random;
 public class Client {
 	// required for frame, page 1 and miscellaneous
 	private JMenuBar jmb;
-	private final static JFrame frame = new JFrame("SparkBank 2.1.0 (beta)");
+	private final static JFrame frame = new JFrame("SparkBank 2.1.1");
 	private JMenu file, tools, help;
 	private JMenuItem read, save, refresh, exit, requestP, requestNP, about;
 	private static JPanel p = new JPanel();
@@ -134,7 +138,7 @@ public class Client {
 	private double withDep$;
 	private boolean isDecimalUsed = false;
 	private ImageIcon tick = createImageIcon("tick.png");
-	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.0 (beta)<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.0 Build 0007</span></html>");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.1<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.1 Build 0008</span></html>");
 	private Object[] aboutMsg = {aboutMsgLabel};
 	// used for modifying user information while logged in
 	private JPasswordField modLoginPIN = new JPasswordField();
@@ -149,6 +153,14 @@ public class Client {
 	private static byte administratorUnsuccessfulAttemptCount = 0;
 	private Boolean loopBreaker = false;
 	private Random randie;
+	// Used for CUI Administrative Page
+	private boolean cuiLoop = true;
+	private String cuiCommands;
+	private ArrayList<String> arguments = new ArrayList<String>();
+	private Scanner scan = new Scanner(System.in);
+	private Scanner delim;
+	private int adminServerType = 0; // 0=all 1=asia 2=america 3=europe
+	private boolean isUserRemoved = false;
 	// used to generate the tick icon (study this in-depth later)
 	protected static ImageIcon createImageIcon(String path) {
         java.net.URL imgURL = Client.class.getResource(path);
@@ -365,9 +377,10 @@ public class Client {
 								}
 								if(confirmBoolean5) {
 									administratorUnsuccessfulAttemptCount = 0;
-									clearpage();
-									administratorPage();
 									loopBreaker = true;
+									adminUserName.setText("");
+									adminPassWord.setText("");
+									administratorPage();
 								}
 							}
 						}
@@ -685,7 +698,7 @@ public class Client {
 		frame.add(p);
 		p.setLayout(new GridLayout(10, 1, 3, 3));
 		p.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-		welcome = new JLabel("Welcome to SparkBank 2.1.0 (beta)", SwingConstants.CENTER);
+		welcome = new JLabel("Welcome to SparkBank 2.1.1", SwingConstants.CENTER);
 		p.add(welcome);
 		refreshServer();
 		p.add(status);
@@ -844,7 +857,833 @@ public class Client {
 		p.getRootPane().setDefaultButton(button_13);
 	}
 	public void administratorPage() {
-
+		// Because GUI scaling is not possible at the moment, Administrative tasks will be done using the command line.
+		System.out.println("Welcome to the Administrator's Page!\n\nHere, you are capable of modifying information of all users in all servers. \nIf you need help using this prompt, return \"help\".");
+		do {
+			switch(adminServerType) {
+				case 0:
+					System.out.print("admin@all: ");
+					break;
+				case 1:
+					System.out.print("admin@Asia: ");
+					break;
+				case 2:
+					System.out.print("admin@America: ");
+					break;
+				case 3:
+					System.out.print("admin@Europe: ");
+					break;
+				default:
+					System.out.print("admin@all: ");
+					break;
+			}
+			cuiCommands = scan.nextLine();
+			delim = new Scanner(cuiCommands).useDelimiter(" ");
+			while(delim.hasNext()) {
+				arguments.add(delim.next());
+			}
+			switch(arguments.get(0)) {
+				case "help":
+					System.out.println("Here is a list of commands you can use for this page: \n");
+					System.out.println("exit\n\tLogs out of the administrator page.\n");
+					System.out.println("pws\n\tPrints your current accessibility of servers.\n");
+					System.out.println("change [server_name]\n\tChanges the server you want to modify. Type in:\n\tasia: to modify the Asian server.\n\tamerica: to modify the American server.\n\teurope: to modify the European server.\n\tall: to modify all servers in general.\n");
+					System.out.println("list\n\tLists all registered users on the currently selected server.\n");
+					System.out.println("rm [server_name(if on all-accessor)] [user_account_ID]\n\tRemoves a user from the system.\n");
+					System.out.println("cp [server_name(if on all-accessor)] [user_account_ID] [server_name]\n\tCopies a user to another server.\n");
+					System.out.println("move [server_name(if on all-accessor)] [user_account_ID] [server_name]\n\tMoves a user to another server.\n");
+					System.out.println("reset [server_name(if on all-accessor)]\n\tRemoves all users.\n\tRequires Administrative password.\n");
+					break;
+				case "change":
+					try {
+						switch(arguments.get(1)) {
+						case "asia":
+							System.out.println("You are now modifying the following server: Asian.");
+							adminServerType = 1;
+							break;
+						case "america":
+							System.out.println("You are now modifying the following server: American.");
+							adminServerType = 2;
+							break;
+						case "europe":
+							System.out.println("You are now modifying the following server: European.");
+							adminServerType = 3;
+							break;
+						case "all":
+							System.out.println("You are now modifying the following server: All.");
+							adminServerType = 0;
+							break;
+						default:
+							System.out.println("Did not successfully change server. Check for typos.");
+							break;
+						}
+					}
+					catch(IndexOutOfBoundsException e) {
+						System.out.println("Please type in the server name you would like to modify. For more information, type \"help\".");
+					}
+					break;
+				case "pws":
+					switch(adminServerType) {
+						case 0:
+							System.out.print("You are currently modifying all servers.\n");
+							break;
+						case 1:
+							System.out.print("You are currently modifying the Asian servers.\n");
+							break;
+						case 2:
+							System.out.print("You are currently modifying the American servers.\n");
+							break;
+						case 3:
+							System.out.print("You are currently modifying the Euroepean servers.\n");
+							break;
+						default:
+							System.out.print("ERROR");
+							break;
+					}
+					break;
+				case "list":
+					System.out.println("|Name:\t\t|Account ID:\t|Balance:\t|Pin:\t|");
+					System.out.println("|---------------|---------------|---------------|-------|");
+					switch(adminServerType) {
+						case 0:
+							System.out.println("|ASIAN SERVER");
+							for(User u : asia) {
+								System.out.println("|" + u.getName() + "\t|" + u.getAccountID() + "\t|" + u.getBalance() + "\t\t|" + u.getPIN() + "\t|");
+							}
+							System.out.println("|---------------|---------------|---------------|-------|");
+							System.out.println("|AMERICAN SERVER");
+							for(User u : america) {
+								System.out.println("|" + u.getName() + "\t|" + u.getAccountID() + "\t|" + u.getBalance() + "\t\t|" + u.getPIN() + "\t|");
+							}
+							System.out.println("|---------------|---------------|---------------|-------|");
+							System.out.println("|EUROPEAN SERVER");
+							for(User u : europe) {
+								System.out.println("|" + u.getName() + "\t|" + u.getAccountID() + "\t|" + u.getBalance() + "\t\t|" + u.getPIN() + "\t|");
+							}
+							System.out.println("|---------------|---------------|---------------|-------|");
+							break;
+						case 1:
+							for(User u : asia) {
+								System.out.println("|" + u.getName() + "\t|" + u.getAccountID() + "\t|" + u.getBalance() + "\t\t|" + u.getPIN() + "\t|");
+							}
+							System.out.println("|---------------|---------------|---------------|-------|");
+							break;
+						case 2:
+							for(User u : america) {
+								System.out.println("|" + u.getName() + "\t|" + u.getAccountID() + "\t|" + u.getBalance() + "\t\t|" + u.getPIN() + "\t|");
+							}
+							System.out.println("|---------------|---------------|---------------|-------|");
+							break;
+						case 3:
+							for(User u : europe) {
+								System.out.println("|" + u.getName() + "\t|" + u.getAccountID() + "\t|" + u.getBalance() + "\t\t|" + u.getPIN() + "\t|");
+							}
+							System.out.println("|---------------|---------------|---------------|-------|");
+							break;
+						default:
+							System.out.print("ERROR");
+							break;
+					}
+					break;
+				case "rm":
+					try {
+						switch(adminServerType) {
+							case 0:
+								switch(arguments.get(1)) {
+									case "asia":
+										for(int i = 0; i < asia.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == asia.get(i).getAccountID()) {
+												asia.remove(i);
+												System.out.println("Removed user successfully.");
+												isUserRemoved = true;
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									case "america":
+										for(int i = 0; i < asia.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == america.get(i).getAccountID()) {
+												america.remove(i);
+												System.out.println("Removed user successfully.");
+												isUserRemoved = true;
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									case "europe":
+										for(int i = 0; i < asia.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == europe.get(i).getAccountID()) {
+												europe.remove(i);
+												System.out.println("Removed user successfully.");
+												isUserRemoved = true;
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									default:
+										System.out.println("Server name not recognised. Please enter a valid server name.");
+										break;
+								}
+								break;
+							case 1:
+								for(int i = 0; i < asia.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == asia.get(i).getAccountID()) {
+										asia.remove(i);
+										System.out.println("Removed user successfully.");
+										isUserRemoved = true;
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							case 2:
+								for(int i = 0; i < asia.size(); i++) {
+									if(Integer.parseInt(arguments.get(2)) == america.get(i).getAccountID()) {
+										america.remove(i);
+										System.out.println("Removed user successfully.");
+										isUserRemoved = true;
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							case 3:
+								for(int i = 0; i < asia.size(); i++) {
+									if(Integer.parseInt(arguments.get(2)) == europe.get(i).getAccountID()) {
+										europe.remove(i);
+										System.out.println("Removed user successfully.");
+										isUserRemoved = true;
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							default:
+								System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								break;
+						}
+					}
+					catch (Exception e) {
+						System.out.println("ERROR!!!");
+					}
+					break;
+				case "cp":
+					try {
+						switch(adminServerType) {
+							case 0:
+								switch(arguments.get(1)) {
+									case "asia":
+										for(int i = 0; i < asia.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == asia.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "asia":
+														System.out.println("User is already in this server.");
+														isUserRemoved = true;
+														break;
+													case "america":
+														if(america.size() < 10) {
+															america.add(asia.get(i));
+															isUserRemoved = true;
+															System.out.println("User successfully copied.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													case "europe":
+														if(europe.size() < 10) {
+															europe.add(asia.get(i));
+															isUserRemoved = true;
+															System.out.println("User successfully copied.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													default:
+														System.out.println("Our system did not recognise the name of the server that the user will be copied to. Please try again.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									case "america":
+										for(int i = 0; i < america.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == america.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "america":
+														System.out.println("User is already in this server.");
+														isUserRemoved = true;
+														break;
+													case "asia":
+														if(asia.size() < 10) {
+															asia.add(america.get(i));
+															isUserRemoved = true;
+															System.out.println("User successfully copied.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													case "europe":
+														if(europe.size() < 10) {
+															europe.add(america.get(i));
+															isUserRemoved = true;
+															System.out.println("User successfully copied.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													default:
+														System.out.println("Our system did not recognise the name of the server that the user will be copied to. Please try again.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									case "europe":
+										for(int i = 0; i < asia.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == europe.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "europe":
+														System.out.println("User is already in this server.");
+														isUserRemoved = true;
+														break;
+													case "america":
+														if(america.size() < 10) {
+															america.add(europe.get(i));
+															isUserRemoved = true;
+															System.out.println("User successfully copied.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													case "asia":
+														if(asia.size() < 10) {
+															asia.add(europe.get(i));
+															isUserRemoved = true;
+															System.out.println("User successfully copied.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													default:
+														System.out.println("Our system did not recognise the name of the server that the user will be copied to. Please try again.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									default:
+										System.out.println("Server name not recognised. Please enter a valid server name.");
+										break;
+								}
+								break;
+							case 1:
+								for(int i = 0; i < asia.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == asia.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "asia":
+												System.out.println("User is already in this server.");
+												isUserRemoved = true;
+												break;
+											case "america":
+												if(america.size() < 10) {
+													america.add(asia.get(i));
+													isUserRemoved = true;
+													System.out.println("User successfully copied.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											case "europe":
+												if(europe.size() < 10) {
+													europe.add(asia.get(i));
+													isUserRemoved = true;
+													System.out.println("User successfully copied.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											default:
+												System.out.println("Our system did not recognise the name of the server that the user will be copied to. Please try again.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							case 2:
+								for(int i = 0; i < america.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == america.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "america":
+												System.out.println("User is already in this server.");
+												isUserRemoved = true;
+												break;
+											case "asia":
+												if(asia.size() < 10) {
+													asia.add(america.get(i));
+													isUserRemoved = true;
+													System.out.println("User successfully copied.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											case "europe":
+												if(europe.size() < 10) {
+													europe.add(america.get(i));
+													isUserRemoved = true;
+													System.out.println("User successfully copied.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											default:
+												System.out.println("Our system did not recognise the name of the server that the user will be copied to. Please try again.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							case 3:
+								for(int i = 0; i < asia.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == europe.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "europe":
+												System.out.println("User is already in this server.");
+												isUserRemoved = true;
+												break;
+											case "america":
+												if(america.size() < 10) {
+													america.add(europe.get(i));
+													isUserRemoved = true;
+													System.out.println("User successfully copied.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											case "asia":
+												if(asia.size() < 10) {
+													asia.add(europe.get(i));
+													isUserRemoved = true;
+													System.out.println("User successfully copied.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											default:
+												System.out.println("Our system did not recognise the name of the server that the user will be copied to. Please try again.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							default:
+								System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								break;
+						}
+					}
+					catch (Exception e) {
+						System.out.println("ERROR!!!");
+					}
+					break;
+				case "move":
+					try {
+						switch(adminServerType) {
+							case 0:
+								switch(arguments.get(1)) {
+									case "asia":
+										for(int i = 0; i < asia.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == asia.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "asia":
+														System.out.println("User is already in this server.");
+														isUserRemoved = true;
+														break;
+													case "america":
+														if(america.size() < 10) {
+															america.add(asia.get(i));
+															asia.remove(i);
+															isUserRemoved = true;
+															System.out.println("User successfully moved.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													case "europe":
+														if(europe.size() < 10) {
+															europe.add(asia.get(i));
+															asia.remove(i);
+															isUserRemoved = true;
+															System.out.println("User successfully moved.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													default:
+														System.out.println("Our system did not recognise the name of the server that the user will be moved to. Please try again.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									case "america":
+										for(int i = 0; i < america.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == america.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "america":
+														System.out.println("User is already in this server.");
+														isUserRemoved = true;
+														break;
+													case "asia":
+														if(asia.size() < 10) {
+															asia.add(america.get(i));
+															america.remove(i);
+															isUserRemoved = true;
+															System.out.println("User successfully moved.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													case "europe":
+														if(europe.size() < 10) {
+															europe.add(america.get(i));
+															america.remove(i);
+															isUserRemoved = true;
+															System.out.println("User successfully moved.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													default:
+														System.out.println("Our system did not recognise the name of the server that the user will be moved to. Please try again.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									case "europe":
+										for(int i = 0; i < asia.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == europe.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "europe":
+														System.out.println("User is already in this server.");
+														isUserRemoved = true;
+														break;
+													case "america":
+														if(america.size() < 10) {
+															america.add(europe.get(i));
+															europe.remove(i);
+															isUserRemoved = true;
+															System.out.println("User successfully moved.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													case "asia":
+														if(asia.size() < 10) {
+															asia.add(europe.get(i));
+															europe.remove(i);
+															isUserRemoved = true;
+															System.out.println("User successfully moved.");
+														}
+														else {
+															System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+															isUserRemoved = true;
+														}
+														break;
+													default:
+														System.out.println("Our system did not recognise the name of the server that the user will be moved to. Please try again.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+										}
+										isUserRemoved = false;
+										break;
+									default:
+										System.out.println("Server name not recognised. Please enter a valid server name.");
+										break;
+								}
+								break;
+							case 1:
+								for(int i = 0; i < asia.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == asia.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "asia":
+												System.out.println("User is already in this server.");
+												isUserRemoved = true;
+												break;
+											case "america":
+												if(america.size() < 10) {
+													america.add(asia.get(i));
+													asia.remove(i);
+													isUserRemoved = true;
+													System.out.println("User successfully moved.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											case "europe":
+												if(europe.size() < 10) {
+													europe.add(asia.get(i));
+													asia.remove(i);
+													isUserRemoved = true;
+													System.out.println("User successfully moved.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											default:
+												System.out.println("Our system did not recognise the name of the server that the user will be moved to. Please try again.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							case 2:
+								for(int i = 0; i < america.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == america.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "america":
+												System.out.println("User is already in this server.");
+												isUserRemoved = true;
+												break;
+											case "asia":
+												if(asia.size() < 10) {
+													asia.add(america.get(i));
+													america.remove(i);
+													isUserRemoved = true;
+													System.out.println("User successfully moved.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											case "europe":
+												if(europe.size() < 10) {
+													europe.add(america.get(i));
+													america.remove(i);
+													isUserRemoved = true;
+													System.out.println("User successfully moved.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											default:
+												System.out.println("Our system did not recognise the name of the server that the user will be moved to. Please try again.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							case 3:
+								for(int i = 0; i < asia.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == europe.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "europe":
+												System.out.println("User is already in this server.");
+												isUserRemoved = true;
+												break;
+											case "america":
+												if(america.size() < 10) {
+													america.add(europe.get(i));
+													europe.remove(i);
+													isUserRemoved = true;
+													System.out.println("User successfully moved.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											case "asia":
+												if(asia.size() < 10) {
+													asia.add(europe.get(i));
+													europe.remove(i);
+													isUserRemoved = true;
+													System.out.println("User successfully moved.");
+												}
+												else {
+													System.out.println("The server you are trying to reallocate the user to is full. Delete users on the server and try again.");
+													isUserRemoved = true;
+												}
+												break;
+											default:
+												System.out.println("Our system did not recognise the name of the server that the user will be moved to. Please try again.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								}
+								isUserRemoved = false;
+								break;
+							default:
+								System.out.println("Our system did not register a user with such an account ID. Please double check the account ID and try again.");
+								break;
+						}
+					}
+					catch (Exception e) {
+						System.out.println("ERROR!!!");
+					}
+					break;
+				case "reset":
+					System.out.print("Please enter the administrative password: ");
+					cuiCommands = scan.nextLine();
+					if(cuiCommands.equals(Administrator.getString())) {
+						switch(adminServerType) {
+							case 1:
+								asia.clear();
+								System.out.println("Successfully removed all users.");
+								break;
+							case 2:
+								america.clear();
+								System.out.println("Successfully removed all users.");
+								break;
+							case 3:
+								europe.clear();
+								System.out.println("Successfully removed all users.");
+								break;
+							case 0:
+								if(arguments.size() == 2) {
+									switch(arguments.get(1)) {
+										case "asia":
+											asia.clear();
+											System.out.println("Successfully removed all users.");
+											break;
+										case "america":
+											america.clear();
+											System.out.println("Successfully removed all users.");
+											break;
+										case "europe":
+											europe.clear();
+											System.out.println("Successfully removed all users.");
+											break;
+										default:
+											System.out.println("Our system was unable to recognise the server name. Please try again.");
+											break;
+									}
+								}
+								else {
+									asia.clear();
+									america.clear();
+									europe.clear();
+									System.out.println("Successfully removed all users from all servers.");
+								}
+								break;
+						}
+					}	
+					else {
+						System.out.println("The password is incorrect. Please try again.");
+					}
+					break;
+				case "exit":
+					System.out.println("Logged out successfully.");
+					cuiLoop = false;
+					break;
+				default:
+					System.out.println("The command \"" + cuiCommands + "\" was not recognised. Please enter a valid command with the appropriate syntax.");
+			}
+			arguments.clear();
+		} while(cuiLoop);
+		cuiLoop = true;
 	}
 	public void clearpage() {
 		p.removeAll();

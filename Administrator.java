@@ -21,11 +21,11 @@ public final class Administrator {
 	public static char[] getPassword() {
 		return adminPassword;
 	}
-	/*public static String getString() {
+	public static String getString() {
 		String pass = new String("");
 		for(int i = 0; i < adminPassword.length; i++) {
 			pass += new Character(adminPassword[i]).toString();
 		}
 		return pass;
-	}*/
+	}
 }
