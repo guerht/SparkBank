@@ -9,8 +9,8 @@ import java.util.Random;
 
 /**
  * @author	Seunghoon Park <spark.knights.rule@gmail.com>
- * @version 2.1.1 Build 0008
- * @date 11th March 2017 12:48PM
+ * @version 2.1.1 Build 0009
+ * @date 13th March 2017 03:23PM
  * @since 2.0.1
  * 
  * Version 2.0.1 Build 0002 Patch notes:
@@ -46,6 +46,10 @@ import java.util.Random;
  *		* View all registered users in the server
  *		* Copy, move or remove registered users in the server
  *	* The getString() method in the Administrator class was reborn for usage
+ *
+ * Version 2.1.1 Build 0009 Patch Notes
+ *	* Added a function to modify individual user's information in the Administrator's page
+ *	* Added some exception catchers to the switch functions in the Administrator's page
  *
  *
  */
@@ -138,7 +142,7 @@ public class Client {
 	private double withDep$;
 	private boolean isDecimalUsed = false;
 	private ImageIcon tick = createImageIcon("tick.png");
-	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.1<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.1 Build 0008</span></html>");
+	private JLabel aboutMsgLabel = new JLabel("<html><span style=font-size:15px;>SparkBank 2.1.1<br></span><span font-size:10px>Under Development<br><br><br></span><span font-size:9px>\u00a9 Copyright 2016 Seunghoon Park All Rights Reserved<br>Version 2.1.1 Build 0009</span></html>");
 	private Object[] aboutMsg = {aboutMsgLabel};
 	// used for modifying user information while logged in
 	private JPasswordField modLoginPIN = new JPasswordField();
@@ -892,7 +896,8 @@ public class Client {
 					System.out.println("rm [server_name(if on all-accessor)] [user_account_ID]\n\tRemoves a user from the system.\n");
 					System.out.println("cp [server_name(if on all-accessor)] [user_account_ID] [server_name]\n\tCopies a user to another server.\n");
 					System.out.println("move [server_name(if on all-accessor)] [user_account_ID] [server_name]\n\tMoves a user to another server.\n");
-					System.out.println("reset [server_name(if on all-accessor)]\n\tRemoves all users.\n\tRequires Administrative password.\n");
+					System.out.println("reset [server_name(if on all-accessor)]\n\tRemoves all users.\n\tRequires Administrative password.\n\tIf there are no fields other than reset on the command line,\n\tthe system will erase all users from all servers.\n");
+					System.out.println("modify [server_name(if on all-accessor) [user_account_ID] [info_type_to_modify] [desired_change_info]\n\tModifies a user's stored information.\n\tIn the [info_type_to_modify] field, type:\n\tname: to modify name\n\taccount_ID: to modify the acocunt ID manually\n\tpin: to modify the user's pin\n\tbalance: to modify the user's balance.\n");
 					break;
 				case "change":
 					try {
@@ -1079,7 +1084,7 @@ public class Client {
 						}
 					}
 					catch (Exception e) {
-						System.out.println("ERROR!!!");
+						System.out.println("Field is empty. Please enter further commands to continue.");
 					}
 					break;
 				case "cp":
@@ -1344,7 +1349,7 @@ public class Client {
 						}
 					}
 					catch (Exception e) {
-						System.out.println("ERROR!!!");
+						System.out.println("Field is empty. Please enter further commands to continue.");
 					}
 					break;
 				case "move":
@@ -1621,7 +1626,7 @@ public class Client {
 						}
 					}
 					catch (Exception e) {
-						System.out.println("ERROR!!!");
+						System.out.println("Field is empty. Please enter further commands to continue.");
 					}
 					break;
 				case "reset":
@@ -1674,8 +1679,238 @@ public class Client {
 						System.out.println("The password is incorrect. Please try again.");
 					}
 					break;
+				case "modify":
+					try {
+						switch(adminServerType) {
+							case 0:
+								switch(arguments.get(1)) {
+									case "asia":
+										for(int i = 0; i < asia.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == asia.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "name":
+														asia.get(i).setName(arguments.get(4) + " " + arguments.get(5));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "account_ID":
+														asia.get(i).setAccountID(Integer.parseInt(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "pin":
+														asia.get(i).setPIN(Integer.parseInt(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "balance":
+														asia.get(i).setBalance(Double.parseDouble(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													default:
+														System.out.println("Please type in what you want to change the information to.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not detect such a registered user.");
+										}
+										isUserRemoved = false;
+										break;
+									case "america":
+										for(int i = 0; i < america.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == america.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "name":
+														america.get(i).setName(arguments.get(4) + " " + arguments.get(5));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "account_ID":
+														america.get(i).setAccountID(Integer.parseInt(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "pin":
+														america.get(i).setPIN(Integer.parseInt(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "balance":
+														america.get(i).setBalance(Double.parseDouble(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													default:
+														System.out.println("Please type in what you want to change the information to.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not detect such a registered user.");
+										}
+										isUserRemoved = false;
+										break;
+									case "europe":
+										for(int i = 0; i < europe.size(); i++) {
+											if(Integer.parseInt(arguments.get(2)) == europe.get(i).getAccountID()) {
+												switch(arguments.get(3)) {
+													case "name":
+														europe.get(i).setName(arguments.get(4) + " " + arguments.get(5));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "account_ID":
+														europe.get(i).setAccountID(Integer.parseInt(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "pin":
+														europe.get(i).setPIN(Integer.parseInt(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													case "balance":
+														europe.get(i).setBalance(Double.parseDouble(arguments.get(4)));
+														System.out.println("Changes successfully made.");
+														isUserRemoved = true;
+														break;
+													default:
+														System.out.println("Please type in what you want to change the information to.");
+														break;
+												}
+											}
+										}
+										if (!isUserRemoved) {
+											System.out.println("Our system did not detect such a registered user.");
+										}
+										isUserRemoved = false;
+										break;
+									default:
+										System.out.println("Our system did not recognise the server name you typed in. Please try again.");
+										break;
+								}
+								break;
+							case 1:
+								for(int i = 0; i < asia.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == asia.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "name":
+												asia.get(i).setName(arguments.get(3) + " " + arguments.get(4));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "account_ID":
+												asia.get(i).setAccountID(Integer.parseInt(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "pin":
+												asia.get(i).setPIN(Integer.parseInt(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "balance":
+												asia.get(i).setBalance(Double.parseDouble(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											default:
+												System.out.println("Please type in what you want to change the information to.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not detect such a registered user.");
+								}
+								isUserRemoved = false;
+								break;
+							case 2:
+								for(int i = 0; i < america.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == america.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "name":
+												america.get(i).setName(arguments.get(3) + " " + arguments.get(4));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "account_ID":
+												america.get(i).setAccountID(Integer.parseInt(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "pin":
+												america.get(i).setPIN(Integer.parseInt(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "balance":
+												america.get(i).setBalance(Double.parseDouble(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											default:
+												System.out.println("Please type in what you want to change the information to.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not detect such a registered user.");
+								}
+								isUserRemoved = false;
+								break;
+							case 3:
+								for(int i = 0; i < america.size(); i++) {
+									if(Integer.parseInt(arguments.get(1)) == america.get(i).getAccountID()) {
+										switch(arguments.get(2)) {
+											case "name":
+												america.get(i).setName(arguments.get(3) + " " + arguments.get(4));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "account_ID":
+												america.get(i).setAccountID(Integer.parseInt(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "pin":
+												america.get(i).setPIN(Integer.parseInt(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											case "balance":
+												america.get(i).setBalance(Double.parseDouble(arguments.get(3)));
+												System.out.println("Changes successfully made.");
+												isUserRemoved = true;
+												break;
+											default:
+												System.out.println("Please type in what you want to change the information to.");
+												break;
+										}
+									}
+								}
+								if (!isUserRemoved) {
+									System.out.println("Our system did not detect such a registered user.");
+								}
+								isUserRemoved = false;
+								break;
+							default:
+								System.out.println("ERROR!");
+								break;
+						}
+					}
+					catch (Exception e) {
+						System.out.println("Field incomplete. Please enter the appropriate command in the correct syntax. For more information, return \"help\".");
+					}
+					break;
 				case "exit":
 					System.out.println("Logged out successfully.");
+					adminServerType = 0;
 					cuiLoop = false;
 					break;
 				default:

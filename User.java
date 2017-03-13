@@ -31,8 +31,14 @@ public class User {
 	public void setName(String name) {
 		this.name = name;
 	}
+	public void setAccountID(Integer accountID) {
+		this.accountID = accountID;
+	}
 	public void setPIN(Integer pin) {
 		this.pin = pin;
+	}
+	public void setBalance(Double amount) {
+		balance = amount;
 	}
 	public void withdraw(Double amount) {
 		balance -= amount;
